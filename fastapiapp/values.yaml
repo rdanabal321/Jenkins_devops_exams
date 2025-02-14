@@ -1,0 +1,49 @@
+namespace: default
+
+replicaCount: 1
+
+image:
+  repository: asram321
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+service:
+  type: NodePort
+  port: 8081
+  nodePort: 30080
+  targetPort: 8080
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: chart-example.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+
+resources: {}
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+database:
+  movie:
+    user: movie_db_username
+    password: movie_db_password
+    name: movie_db_dev
+  cast:
+    user: cast_db_username
+    password: cast_db_password
+    name: cast_db_dev

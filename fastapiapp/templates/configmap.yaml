@@ -1,0 +1,42 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "fastapiapp.fullname" . }}-movie-db-configmap
+  namespace: {{ .Values.namespace }}
+data:
+  POSTGRES_USER: {{ .Values.database.movie.user }}
+  POSTGRES_DB: {{ .Values.database.movie.name }}
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "fastapiapp.fullname" . }}-cast-db-configmap
+  namespace: {{ .Values.namespace }}
+data:
+  POSTGRES_USER: {{ .Values.database.cast.user }}
+  POSTGRES_DB: {{ .Values.database.cast.name }}
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "fastapiapp.fullname" . }}-nginx-config
+  namespace: {{ .Values.namespace }}
+data:
+  nginx.conf: |
+    events { }
+
+    http {
+        server {
+            listen 8080;
+
+            location /api/v1/movies {
+                proxy_pass http://{{ include "fastapiapp.fullname" . }}-movie-service:8001/api/v1/movies;
+            }
+
+            location /api/v1/casts {
+                proxy_pass http://{{ include "fastapiapp.fullname" . }}-cast-service:8002/api/v1/casts;
+            }
+        }
+    }

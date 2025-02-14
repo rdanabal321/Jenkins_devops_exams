@@ -1,0 +1,24 @@
+namespace: dev
+
+replicaCount: 1
+
+image:
+  repository: asram321
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+service:
+  type: NodePort
+  port: 8081
+  nodePort: 30082
+  targetPort: 8080
+
+database:
+  movie:
+    user: movie_db_username
+    password: movie_db_password
+    name: movie_db_dev
+  cast:
+    user: cast_db_username
+    password: cast_db_password
+    name: cast_db_dev

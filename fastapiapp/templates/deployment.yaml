@@ -1,0 +1,98 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "fastapiapp.fullname" . }}-movie-service
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "fastapiapp.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "fastapiapp.name" . }}-movie-service
+  template:
+    metadata:
+      labels:
+        app: {{ include "fastapiapp.name" . }}-movie-service
+    spec:
+      initContainers:
+      - name: init-movie-service
+        image: postgres:12.1-alpine
+        command: ['sh', '-c', 'until pg_isready -h {{ include "fastapiapp.fullname" . }}-movie-db -U {{ .Values.database.movie.user }} -d {{ .Values.database.movie.name }}; do echo waiting for database; sleep 2; done;']
+      containers:
+      - name: movie-service
+        image: "{{ .Values.image.repository }}/movie-service:{{ .Values.image.tag }}"
+        ports:
+        - containerPort: 8000
+        env:
+        - name: DATABASE_URI
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "fastapiapp.fullname" . }}-movie-db-secrets
+              key: DATABASE_URI
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "fastapiapp.fullname" . }}-cast-service
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "fastapiapp.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "fastapiapp.name" . }}-cast-service
+  template:
+    metadata:
+      labels:
+        app: {{ include "fastapiapp.name" . }}-cast-service
+    spec:
+      initContainers:
+      - name: init-cast-service
+        image: postgres:12.1-alpine
+        command: ['sh', '-c', 'until pg_isready -h {{ include "fastapiapp.fullname" . }}-cast-db -U {{ .Values.database.cast.user }} -d {{ .Values.database.cast.name }}; do echo waiting for database; sleep 2; done;']
+      containers:
+      - name: cast-service
+        image: "{{ .Values.image.repository }}/cast-service:{{ .Values.image.tag }}"
+        ports:
+        - containerPort: 8000
+        env:
+        - name: DATABASE_URI
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "fastapiapp.fullname" . }}-cast-db-secrets
+              key: DATABASE_URI
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "fastapiapp.fullname" . }}-nginx
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "fastapiapp.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ include "fastapiapp.name" . }}-nginx
+  template:
+    metadata:
+      labels:
+        app: {{ include "fastapiapp.name" . }}-nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:alpine
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: nginx-config
+          mountPath: /etc/nginx/nginx.conf
+          subPath: nginx.conf
+      volumes:
+      - name: nginx-config
+        configMap:
+          name: {{ include "fastapiapp.fullname" . }}-nginx-config
