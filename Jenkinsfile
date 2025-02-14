@@ -48,10 +48,12 @@ pipeline {
                 input message: 'Approve deployment to production?', ok: 'Deploy'
             }
         }
-
+        
         stage('Helm Install') {
             steps {
-                sh 'helm install fastapiapp-prod ./fastapiapp-0.1.0.tgz --namespace prod -f fastapiapp/values-prod.yaml'
+                withKubeCredentials(kubectlCredentials: [[caCertificate: '', clusterName: 'KubCluster', contextName: '', credentialsId: 'kub_secret', namespace: 'prod', serverUrl: 'https://192.168.1.24:6443']]) {
+                    sh 'helm install fastapiapp-prod ./fastapiapp-0.1.0.tgz --namespace prod -f fastapiapp/values-prod.yaml'
+}
             }
         }
     }
