@@ -18,9 +18,9 @@ pipeline {
         stage('Build Docker Images') {
             steps {
                 script {
-                    docker.build("${DOCKERHUB_REPO}/cast-service:${IMAGE_TAG}", '-f cast-service/Dockerfile .')
-                    docker.build("${DOCKERHUB_REPO}/movie-service:${IMAGE_TAG}", '-f movie-service/Dockerfile .')
-                    docker.build("${DOCKERHUB_REPO}/nginx:${IMAGE_TAG}", '-f nginx/Dockerfile .')
+                    docker.build("${DOCKERHUB_REPO}/cast-service:${IMAGE_TAG}", '-f cast-dockerfile .')
+                    docker.build("${DOCKERHUB_REPO}/movie-service:${IMAGE_TAG}", '-f movie-dockerfile .')
+                    docker.build("${DOCKERHUB_REPO}/nginx:${IMAGE_TAG}", '-f nginx-dockerfile .')
                 }
             }
         }
